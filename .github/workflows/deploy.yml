@@ -18,18 +18,21 @@ jobs:
         sudo apt-get update
         sudo apt-get install openssh-client -y
 
-    - name: Deploy application to EC2
+    - name: Create SSH directory
+      run: mkdir -p ~/.ssh
+
+    - name: Set up SSH private key
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+
+    - name: Deploy application to EC2
+      env:
         EC2_HOST: ec2-54-165-255-78.compute-1.amazonaws.com
         EC2_USER: root  
       run: |
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        
-        # Example commands, adjust according to your deployment needs
         ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
-          cd /root/hello-world-nestjs
+          cd /root/your-repo
           git pull origin master  
           npm install  
           pm2 restart app_name || pm2 start ./dist/main.js --name app_name
